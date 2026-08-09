@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://docs/license.rst;md5=83b7626b8c7a37263c6a58af8d19bee1
 
 COMPATIBLE_MACHINE = "gateway-dk"
 
-DEPENDS = "u-boot-tools-native u-boot rcw"
+DEPENDS = "u-boot-tools-native u-boot rcw openssl-native"
 do_compile[depends] += "u-boot:do_deploy rcw:do_deploy"
 
 # Pinned to an NXP Linux Factory release (see conf/include/nxp-base.inc
@@ -70,7 +70,14 @@ do_compile() {
         esac
 
         make V=1 realclean
-        oe_runmake pbl fip PLAT=${PLATFORM} BOOT_MODE=${d} DEBUG=0 LOG_LEVEL=20 RCW=${DEPLOY_DIR_IMAGE}/rcw/gateway_dk/${rcwimg} BL33=${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}
+        oe_runmake pbl fip \
+	    PLAT=${PLATFORM} \
+	    BOOT_MODE=${d} \
+	    DEBUG=0 \
+	    LOG_LEVEL=20 \
+	    OPENSSL_DIR=${STAGING_DIR_NATIVE}${prefix_native} \
+	    RCW=${DEPLOY_DIR_IMAGE}/rcw/gateway_dk/${rcwimg} \
+	    BL33=${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}
         cp ${S}/build/${PLATFORM}/release/bl2_${d}.pbl .
         cp ${S}/build/${PLATFORM}/release/fip.bin .
     done

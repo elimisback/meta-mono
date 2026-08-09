@@ -1,21 +1,22 @@
-From 300361f26cb8e97172cb1a8c6567a498fd90ba63 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?M=C3=B4she=20van=20der=20Sterre?= <me@moshe.nl>
-Date: Sat, 2 May 2026 19:23:38 +0200
+From 9af05b7afb11454b401972a291460421b44e6760 Mon Sep 17 00:00:00 2001
+From: OpenEmbedded <oe.patch@oe>
+Date: Sat, 2 May 2026 19:24:45 +0200
 Subject: [PATCH] board: gateway_dk: derive SFP modes from SerDes RCW
+
+From: =?UTF-8?q?M=C3=B4she=20van=20der=20Sterre?= <me@moshe.nl>
 
 Upstream-Status: Inappropriate [product-specific]
 ---
- .../cpu/armv8/fsl-layerscape/ls1046a_serdes.c |   2 +
- board/freescale/gateway_dk/gateway_dk.c       | 194 ++++++++++++++++++
- 2 files changed, 196 insertions(+)
+ board/freescale/gateway_dk/gateway_dk.c | 195 +++++++++++++++++++++++-
+ 1 file changed, 194 insertions(+), 1 deletion(-)
 
-Index: u-boot-git/board/freescale/gateway_dk/gateway_dk.c
-===================================================================
---- u-boot-git.orig/board/freescale/gateway_dk/gateway_dk.c
-+++ u-boot-git/board/freescale/gateway_dk/gateway_dk.c
-@@ -29,9 +29,11 @@
- #include <wdt.h>
- #include <watchdog.h>
+diff --git a/board/freescale/gateway_dk/gateway_dk.c b/board/freescale/gateway_dk/gateway_dk.c
+index 53beeee70e2..1583b761d2e 100644
+--- a/board/freescale/gateway_dk/gateway_dk.c
++++ b/board/freescale/gateway_dk/gateway_dk.c
+@@ -27,9 +27,11 @@
+ #include <fsl_esdhc.h>
+ #include <fsl_dspi.h>
  #include <dm.h>
 +#include <linux/libfdt.h>
  
@@ -25,9 +26,9 @@ Index: u-boot-git/board/freescale/gateway_dk/gateway_dk.c
  
  DECLARE_GLOBAL_DATA_PTR;
  
-@@ -62,6 +64,32 @@ void lp5810a_set_status(int any_test_fai
- #define DCFG_PORSR1_OFFSET              0x000
- #define ERRATA_A008127_TRIGGER_OFFSET   0x1A8
+@@ -61,6 +63,32 @@ void lp5810a_set_status(int any_test_failed);
+ #define DCFG_PORSR1_OFFSET		0x000
+ #define ERRATUM_A010539_TRIGGER_OFFSET	0x1A8
  
 +#define MONO_SRDS1_SFP0_10G_SFP1_10G	0x1133
 +#define MONO_SRDS1_SFP0_10G_SFP1_1G	0x1333
@@ -55,11 +56,11 @@ Index: u-boot-git/board/freescale/gateway_dk/gateway_dk.c
 +	MONO_SFP_MODE_UNKNOWN,
 +};
 +
- static void erratum_a008127(void)
+ static void erratum_a010539(void)
  {
-     u32 porsr1_val;
-@@ -71,6 +99,169 @@ static void erratum_a008127(void)
-     out_be32((void *)(CFG_SYS_FSL_SCFG_ADDR + ERRATA_A008127_TRIGGER_OFFSET), 0xFFFFFFFF);
+ 	u32 porsr1_val;
+@@ -71,6 +99,169 @@ static void erratum_a010539(void)
+ 	out_be32((void *)(CFG_SYS_FSL_SCFG_ADDR + ERRATUM_A010539_TRIGGER_OFFSET), 0xFFFFFFFF);
  }
  
 +static u32 mono_get_serdes1_protocol(void)
@@ -227,7 +228,7 @@ Index: u-boot-git/board/freescale/gateway_dk/gateway_dk.c
 +
  int board_early_init_f(void)
  {
- 	erratum_a008127();
+ 	erratum_a010539();
 @@ -112,6 +303,7 @@ int misc_init_r(void)
  
  	hw_tests_print_banner("Boot Self-Test");
@@ -236,7 +237,7 @@ Index: u-boot-git/board/freescale/gateway_dk/gateway_dk.c
  
  	/* Surface the aggregate result on the front-panel LED and propagate
  	 * it to the kernel via bootargs.
-@@ -170,6 +362,7 @@ int ft_board_setup(void *blob, struct bd
+@@ -170,6 +362,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
  #endif
  #endif
  
